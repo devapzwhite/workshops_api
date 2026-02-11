@@ -5,3 +5,4 @@
 3. instalar requeriments.txt
 "pip install -r requirements.txt"
 4. ejecutar main.py
+"uvicorn main:app --reload"
