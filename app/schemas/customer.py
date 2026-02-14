@@ -17,6 +17,7 @@ class CustomerCreate(CustomerBase):
 
 # ---- Para actualizar (opcional) ----
 class CustomerUpdate(BaseModel):
+    document_id: Optional[str] = Field(None, max_length=20)
     name: Optional[str] = Field(None, max_length=100)
     last_name: Optional[str] = Field(None, max_length=100)
     phone: Optional[str] = Field(None, max_length=20)

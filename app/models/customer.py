@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer,String, DateTime,ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.database import Base
@@ -14,6 +14,8 @@ class Customer(Base):
     email = Column(String(100))
     address = Column(String(200))
     created_at = Column(DateTime(timezone=True),server_default=func.now())
+    workshop = relationship('Workshop', back_populates="customers")
+    vehicles = relationship('Vehicle', back_populates="customer")
+    __table_args__ = (
+        UniqueConstraint('shop_id', 'document_id', name='uq_customers_shop_document'),)
 
-    # shop = relationship("Workshop", back_populates="customers")
-    # vehicles = relationship("Vehicles", back_populates="customer")

@@ -13,6 +13,6 @@ class User(Base):
     password = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True, server_default="true")
     created_at = Column(DateTime, server_default=func.now())
-
-    # workshop = relationship("Workshop", back_populates="users")
+    work_orders = relationship("WorkOrder", back_populates="user")
+    workshop = relationship("Workshop", back_populates="users")
     # roles = relationship("role",secondary="user_roles", back_populates="users")
