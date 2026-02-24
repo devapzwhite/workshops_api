@@ -1,9 +1,7 @@
-from http.client import responses
 from typing import List
 
 
 from fastapi import HTTPException
-from sqlalchemy.util import await_only
 
 from app.models import Workshop, Vehicle, Customer
 from app.schemas.vehicle import CreateVehicle, VehicleUpdate
@@ -72,7 +70,7 @@ async def modify_vehicle(id: int,db:AsyncSession,payload:VehicleUpdate, shop_id:
     return vehicle
 
 async def _exists_customer_by_id(db: AsyncSession, id: int,shop_id: int)->bool:
-    response = await db.execute(select(Customer).where(Customer.id == id))
+    response = await db.execute(select(Customer).where(Customer.shop_id == shop_id,Customer.id == id))
     customer = response.scalars().first()
     if not customer:
         return False
