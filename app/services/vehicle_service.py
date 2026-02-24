@@ -1,21 +1,23 @@
 from typing import List
 
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from app.models import Workshop, Vehicle, Customer
 from app.schemas.vehicle import CreateVehicle, VehicleUpdate
-from psycopg2.errors import ForeignKeyViolation
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
-def get_vehicles_by_workshop(
+async def get_vehicles_by_workshop(
         workshop_id: int,
-        db: Session
+        db: AsyncSession
 )->List[Vehicle]:
-    workshop = db.query(Workshop).filter(Workshop.id == workshop_id).first()
-    if not workshop:
-        raise HTTPException(status_code=404, detail="Workshop not found")
-    return workshop.vehicles
+    result = await db.execute(
+        select(Vehicle)
+        .where(Vehicle.shop_id == workshop_id)
+    )
+    vehicles = result.scalars().all()
+    return list(vehicles)
 
 def get_vehicle_by_plate(
         plate: str,

@@ -6,7 +6,9 @@ from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, status
 from pwdlib import PasswordHash
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
+from sqlalchemy import select  # ← esta línea debe estar
+from sqlalchemy.ext.asyncio import AsyncSession  # ← y esta también
+
 
 from app.models.user import User
 from datetime import datetime, timezone, timedelta
@@ -32,8 +34,9 @@ password_hash = PasswordHash.recommended()
 def verify_password(plain_password, hashed_password):
     return password_hash.verify(plain_password,hashed_password)
 
-def authenticate_user(db, username,password) -> User | None:
-    user = db.query(User).filter(User.username == username).first()
+async def authenticate_user(db, username,password) -> User | None:
+    result = await db.execute(select(User).where(User.username == username))
+    user = result.scalars().first()
     if not user:
         return None
     if not verify_password(password, user.password):
@@ -50,14 +53,15 @@ def generate_token(data: dict,)-> dict:
         token_type="bearer")
     return {"access_token": encoded_jwt.access_token, "token_type": encoded_jwt.token_type,"exp": expire,"user":data}
 
-def current_user(token: Annotated[str,Depends(oauth2_scheme)], db: Annotated[Session, Depends(get_db)])-> None | User | HTTPException:
+async def current_user(token: Annotated[str,Depends(oauth2_scheme)], db: Annotated[AsyncSession, Depends(get_db)])-> None | User | HTTPException:
     try:
         user_data = jwt.decode(token,SECRET_KEY,algorithms=[ALGORITHM])
         if user_data is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid token")
         username = user_data["username"]
         shop_id = user_data["shop_id"]
-        user: User = db.query(User).filter(User.username == username, User.shop_id == shop_id).first()
+        response = await db.execute(select(User).where(User.username == username, User.shop_id == shop_id))
+        user: User = response.scalars().first()
         if not user:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Usuario Inexistente")
         return user

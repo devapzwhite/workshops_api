@@ -1,5 +1,6 @@
 from typing import Annotated,List
 from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from app.core.security import current_user as get_current_user
 from app.dependencies import get_db
@@ -10,8 +11,8 @@ from app.services.vehicle_service import get_vehicles_by_workshop, get_vehicle_b
 router = APIRouter(prefix="/vehicles",tags=["vehicles"])
 
 @router.get("", response_model=List[VehicleRead])
-def get_vehicles(db: Annotated[Session, Depends(get_db)], current_user: Annotated[User,Depends(get_current_user)],):
-    return get_vehicles_by_workshop(db=db,workshop_id=current_user.shop_id)
+async def get_vehicles(db: Annotated[AsyncSession, Depends(get_db)], current_user: Annotated[User,Depends( get_current_user)],):
+    return await get_vehicles_by_workshop(db=db,workshop_id=current_user.shop_id)
 
 
 @router.get("/{plate}", response_model=VehicleRead)

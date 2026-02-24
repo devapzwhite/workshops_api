@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from app.api.v1 import vehicles, customers, workshops,auth
 from pydantic import BaseModel, EmailStr
 from fastapi.middleware.cors import CORSMiddleware
+from app.db.database import engine, Base
 
 app = FastAPI()
 app.include_router(vehicles.router)
@@ -13,6 +14,10 @@ app.include_router(workshops.router)
 
 app.include_router(auth.router)
 
+@app.on_event("startup")
+async def startup():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 # Orígenes permitidos específicos
 # origins = [
@@ -43,11 +48,3 @@ app.add_middleware(
 def read_root():
     return {"Hello": "World"}
 
-
-class customerBase(BaseModel):
-    document_id: str
-    name: str
-    last_name: str
-    phone: Optional[str] = None
-    email: Optional[EmailStr] = None
-    address: Optional[str] = None

@@ -1,6 +1,10 @@
+import re
+
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
 import os
+
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
 from pathlib import Path
 
@@ -8,14 +12,28 @@ BASE_DIR = Path(__file__).resolve().parents[2] #de la ubicacion de este archivo 
 ENV_PATH = BASE_DIR / ".env" #concatena el path raiz con el .env
 
 load_dotenv(ENV_PATH)
+raw_url = os.getenv("DATABASE_URL")
+DATABASE_URL = re.sub(
+    r"^postgresql(\+\w+)?://",
+    "postgresql+asyncpg://",
+    raw_url
+)
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-
+# Elimina parámetros que asyncpg no soporta en la URL
+DATABASE_URL = re.sub(r"[?&]sslmode=\w+", "", DATABASE_URL)
+DATABASE_URL = re.sub(r"[?&]channel_binding=\w+", "", DATABASE_URL)
 # Crea el engine que conecta con PostgreSQL
-engine = create_engine(DATABASE_URL, echo=False)
+engine = create_async_engine (DATABASE_URL, echo=False)
 
 # Cada request usara una sesion local para hablar con la db
-SessionLocal = sessionmaker(autocommit=False, autoflush=False,bind=engine)
+SessionLocal = sessionmaker(engine,
+    class_=AsyncSession,
+    autocommit=False,
+    autoflush=False,
+    expire_on_commit=False)
 
 # clase base de la cual heredaran todos los models o tablas
 Base = declarative_base()
+async def get_db():
+    async with SessionLocal() as session:
+        yield session

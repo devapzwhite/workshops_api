@@ -33,7 +33,6 @@ class CustomerRead(CustomerBase):
     id: int
     shop_id: int
     created_at: datetime
-    vehicles: Optional[List[VehicleRead]]
 
     class Config:
         from_attributes = True
