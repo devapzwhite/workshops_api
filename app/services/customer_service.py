@@ -5,8 +5,8 @@ from app.models.customer import Customer
 from app.schemas.customer import CustomerCreate, CustomerUpdate, CustomerRead
 
 
-def get_customer_by_workshop(rut: str, db: Session, user: User):
-    customer = db.query(Customer).filter(Customer.shop_id == user.shop_id, Customer.document_id == rut).first()
+def get_customer_by_workshop(document_id: str, db: Session, user: User):
+    customer = db.query(Customer).filter(Customer.shop_id == user.shop_id, Customer.document_id == document_id).first()
     if not customer:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Customer not found")
     return customer
@@ -37,7 +37,7 @@ def _exists_customer_by_rut(customer_rut: str,customer_shop_id: int, db: Session
     return False
 
 def update_customer_by_id(customer_id: int, payload: CustomerUpdate,db: Session, current_user: User):
-    customer = _get_customer_by_id(id= customer_id, db=db,workshop=current_user.shop_id)
+    customer = get_customer_by_id(id= customer_id, db=db,workshop=current_user.shop_id)
     update_data = payload.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(customer, field, value)
@@ -48,7 +48,7 @@ def update_customer_by_id(customer_id: int, payload: CustomerUpdate,db: Session,
 
 
 
-def _get_customer_by_id(id: int,db: Session, workshop: int):
+def get_customer_by_id(id: int,db: Session, workshop: int):
     get_customer = db.query(Customer).filter(Customer.shop_id == workshop,Customer.id == id).first()
     if not get_customer:
         raise HTTPException(status_code=404,detail="Customer not found in the workshop")

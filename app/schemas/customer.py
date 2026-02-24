@@ -1,7 +1,11 @@
 from datetime import datetime
 
 from pydantic import BaseModel, EmailStr, Field
-from typing import Optional
+from typing import Optional, List
+
+from app.schemas.vehicle import VehicleRead
+from app.schemas.workshop import WorkshopBase
+
 
 class CustomerBase(BaseModel):
     document_id: str = Field(..., max_length=20)
@@ -29,6 +33,17 @@ class CustomerRead(CustomerBase):
     id: int
     shop_id: int
     created_at: datetime
+    vehicles: Optional[List[VehicleRead]]
+
+    class Config:
+        from_attributes = True
+
+
+class CustomerReadDetail(CustomerBase):
+    id: int
+    workshop: WorkshopBase
+    created_at: datetime
+    vehicles: Optional[List[VehicleRead]]
 
     class Config:
         from_attributes = True

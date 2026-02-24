@@ -8,7 +8,7 @@ from datetime import  datetime
 class WorkshopBase(BaseModel):
     name: str = Field(..., max_length=100)
     owner_name: str = Field(..., max_length=100)
-    phone_number: str = Field(..., max_length=20)
+    phone: str = Field(..., max_length=20)
     address: str = Field(..., max_length=200)
 
 
@@ -16,10 +16,10 @@ class WorkshopCreate(WorkshopBase):
     pass
 
 
-class WorkshopUpdate(WorkshopBase):
+class WorkshopUpdate(BaseModel):
     name: Optional[str] = Field(None, max_length=100)
     owner_name: Optional[str] = Field(None, max_length=100)
-    phone_number: Optional[str] = Field(None, max_length=20)
+    phone: Optional[str] = Field(None, max_length=20)
     address: Optional[str] = Field(None, max_length=200)
 
 class WorkshopRead(WorkshopBase):

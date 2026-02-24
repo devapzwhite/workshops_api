@@ -4,6 +4,7 @@ class TipoVehiculo(PyEnum):
     CAR = 'CAR'
     SUV = 'SUV'
     VAN = 'VAN'
+    MINIVAN = 'MINIVAN'
     PICKUP = 'PICKUP'
     TRUCK = 'TRUCK'
     SKID_STEER = 'SKID_STEER'
