@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from typing import Optional,List
 
 from fastapi import FastAPI
@@ -7,17 +8,20 @@ from pydantic import BaseModel, EmailStr
 from fastapi.middleware.cors import CORSMiddleware
 from app.db.database import engine, Base
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+
+app = FastAPI(lifespan=lifespan)
 app.include_router(vehicles.router)
 app.include_router(customers.router)
 app.include_router(workshops.router)
 
 app.include_router(auth.router)
 
-@app.on_event("startup")
-async def startup():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+
 
 # Orígenes permitidos específicos
 # origins = [
