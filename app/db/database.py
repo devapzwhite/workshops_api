@@ -1,7 +1,5 @@
 import re
-
-from dotenv import load_dotenv
-import os
+from app.core.config import Settings
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import declarative_base
@@ -10,8 +8,10 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 BASE_DIR = Path(__file__).resolve().parents[2] #de la ubicacion de este archivo retrocede 2 veces para llegar al path raiz y encontrar el .env
 ENV_PATH = BASE_DIR / ".env" #concatena el path raiz con el .env
 
-load_dotenv(ENV_PATH)
-raw_url = os.getenv("DATABASE_URL")
+
+settings = Settings()
+
+raw_url = settings.DATABASE_URL
 DATABASE_URL = re.sub(
     r"^postgresql(\+\w+)?://",
     "postgresql+asyncpg://",

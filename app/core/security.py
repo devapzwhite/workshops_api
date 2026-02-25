@@ -1,36 +1,31 @@
-import os
 from typing import Annotated
 
 import jwt
-from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, status
 from pwdlib import PasswordHash
 from pydantic import BaseModel
-from sqlalchemy import select  # ← esta línea debe estar
-from sqlalchemy.ext.asyncio import AsyncSession  # ← y esta también
+from app.core.config import Settings
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 from app.models.user import User
 from datetime import datetime, timezone, timedelta
 from fastapi.security import OAuth2PasswordBearer
 from app.dependencies import get_db
-load_dotenv()
 
-SECRET_KEY = os.getenv("SECRET_KEY")
 
-if not SECRET_KEY:
-    raise RuntimeError("SECRET_KEY no está definida. La app no puede iniciar.")
 
-ALGORITHM = os.getenv("ALGORITHM")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
+
+settings = Settings()
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 class token(BaseModel):
     access_token: str
     token_type: str
-class tokenData(BaseModel):
-    username: str
+
 
 
 password_hash = PasswordHash.recommended()
@@ -50,16 +45,16 @@ async def authenticate_user(db, username,password) -> User | None:
 def generate_token(data: dict,)-> dict:
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(
-        minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
-    encoded_jwt = token(access_token=jwt.encode(to_encode,SECRET_KEY,
-        algorithm=ALGORITHM),
+    encoded_jwt = token(access_token=jwt.encode(to_encode,settings.SECRET_KEY,
+        algorithm=settings.ALGORITHM),
         token_type="bearer")
     return {"access_token": encoded_jwt.access_token, "token_type": encoded_jwt.token_type,"exp": expire,"user":data}
 
-async def current_user(token: Annotated[str,Depends(oauth2_scheme)], db: Annotated[AsyncSession, Depends(get_db)])-> None | User | HTTPException:
+async def current_user(token: Annotated[str,Depends(oauth2_scheme)], db: Annotated[AsyncSession, Depends(get_db)])-> User:
     try:
-        user_data = jwt.decode(token,SECRET_KEY,algorithms=[ALGORITHM])
+        user_data = jwt.decode(token,settings.SECRET_KEY,algorithms=[settings.ALGORITHM])
         if user_data is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid token")
         username = user_data["username"]
