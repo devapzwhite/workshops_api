@@ -6,7 +6,7 @@ from app.core.security import current_user as get_current_user
 from app.dependencies import get_db
 from app.models.user import User
 from app.schemas.vehicle import VehicleRead, CreateVehicle, VehicleUpdate
-from app.services.vehicle_service import get_vehicles_by_workshop, get_vehicle_by_plate, new_vehicle, modify_vehicle
+from app.services.vehicle_service import get_vehicle_by_id, get_vehicles_by_workshop, get_vehicle_by_plate, new_vehicle, modify_vehicle
 
 router = APIRouter(prefix="/vehicles",tags=["vehicles"])
 
@@ -15,12 +15,19 @@ async def get_vehicles(db: Annotated[AsyncSession, Depends(get_db)], current_use
     return await get_vehicles_by_workshop(db=db,workshop_id=current_user.shop_id)
 
 
-@router.get("/{plate}", response_model=VehicleRead)
+@router.get("/searchByPlate/{plate}", response_model=VehicleRead)
 async def search_vehicle_by_plate(
         plate: str,
         db: Annotated[AsyncSession, Depends(get_db)],
         current_user: Annotated[User,Depends(get_current_user)]):
     return await get_vehicle_by_plate(plate=plate,db=db,workshop_id=current_user.shop_id)
+
+@router.get("/searchById/{id}", response_model=VehicleRead)
+async def search_vehicle(
+        id: int,
+        db: Annotated[AsyncSession, Depends(get_db)],
+        current_user: Annotated[User,Depends(get_current_user)]):
+    return await get_vehicle_by_id(id=id,db=db,workshop_id=current_user.shop_id)
 
 
 @router.post("", response_model=VehicleRead)

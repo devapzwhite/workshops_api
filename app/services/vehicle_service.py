@@ -31,6 +31,15 @@ async def get_vehicle_by_plate(
         raise HTTPException(status_code=404, detail="Vehicle not found")
     return vehicle
 
+async def get_vehicle_by_id(
+        id: int,
+        db: AsyncSession,
+        workshop_id: int
+):
+    result = await db.execute(select(Vehicle).where(Vehicle.shop_id == workshop_id, Vehicle.id == id))
+    vehicle = result.scalars().first()
+    return vehicle
+
 async def new_vehicle(vehicle: CreateVehicle, db: AsyncSession ,workshop_id: int)-> Vehicle:
     if await _exists_vehicle(db=db,vehicle_workshop_id=workshop_id,vehicle_plate=vehicle.plate):
         raise HTTPException(status_code=400, detail="Vehicle already exists")
