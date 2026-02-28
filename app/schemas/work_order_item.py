@@ -7,14 +7,13 @@ from app.enums import WorkOrderItemType
 
 
 class WorkOrderItemBase(BaseModel):
-    work_order_id: int = Field(..., alias="Work Order ID")
-    item_type: WorkOrderItemType = Field(..., alias="Work Order Type")
-    description: str = Field(..., alias="Description")
-    quantity: int = Field(default=1, ge=1, alias="Quantity")
-    unit_cost: Decimal = Field(default=Decimal(0) ,ge=0, alias="Unit Cost")
-    unit_price: Decimal = Field(default=Decimal(0),ge=0, alias="Unit Price")
-    before_photo: Optional[str] | None = Field(None, alias="Before Photo")
-    after_photo: Optional[str] | None = Field(None, alias="After Photo")
+    item_type: WorkOrderItemType = Field(...)
+    description: str = Field(...)
+    quantity: int = Field(default=1, ge=1)
+    unit_cost: Decimal = Field(default=Decimal(0) ,ge=0)
+    unit_price: Decimal = Field(default=Decimal(0),ge=0)
+    before_photo: Optional[str] | None = Field(None)
+    after_photo: Optional[str] | None = Field(None)
 
 class WorkOrderItemCreate(WorkOrderItemBase):
     work_order_id: int
