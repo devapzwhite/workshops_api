@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, ForeignKey, DateTime, Numeric, Enum,Text
 from sqlalchemy.orm import relationship
 
 from app.db.database import Base
-from app.enums import statusWorkOrder
+from app.enums import StatusWorkOrder
 
 
 class WorkOrder(Base):
@@ -17,10 +17,11 @@ class WorkOrder(Base):
     initial_diagnosis = Column(Text, nullable=True)
     labor_estimate = Column(Numeric(12,2), default=0)
     parts_estimate = Column(Numeric(precision=12,scale=2), default=0)
-    status = Column(Enum(statusWorkOrder,create_constraint=True,native_enum=False),nullable=False)
+    status = Column(Enum(StatusWorkOrder,create_constraint=True,native_enum=False),nullable=False)
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True),nullable=True, server_default=func.now())
     workshop = relationship("Workshop", back_populates="work_orders")
     vehicles = relationship("Vehicle", back_populates="work_orders")
     user = relationship("User", back_populates="work_orders")
+    work_order_items = relationship("WorkOrderItem", back_populates="work_orders")
 

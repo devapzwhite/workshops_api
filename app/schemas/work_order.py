@@ -1,63 +1,40 @@
 from datetime import datetime
 from decimal import Decimal
 from pydantic import BaseModel, Field
+from pydantic import ConfigDict
+from typing import Optional
 
-from app.enums import statusWorkOrder
+from app.enums import StatusWorkOrder
 
 
-class WorkOrder(BaseModel):
-    vehicle_id: int = Field(...)
+# Campo Decimal reutilizable
+def money_field(default=None):
+    return Field(default, ge=0, max_digits=12, decimal_places=2)
+
+class WorkOrderBase(BaseModel):
     initial_diagnosis: str | None = Field(None)
-    labor_estimate: Decimal | None = Field(None,ge=0,decimal_places=2)
-    parts_estimate: Decimal | None = Field(None, ge=0,decimal_places=2)
-    status: statusWorkOrder
+    labor_estimate: Decimal | None = money_field()
+    parts_estimate: Decimal | None = money_field()
+    status: StatusWorkOrder
     notes: str | None = Field(None)
 
-class NewWorkOrder(WorkOrder):
-    pass
+class NewWorkOrder(WorkOrderBase):
+    vehicle_id: int = Field(...)
 
-class WorkOrdersRead(WorkOrder):
+class WorkOrdersRead(WorkOrderBase):
     id: int
     shop_id: int
-    created_by_user_id: int
+    created_by_user_id: Optional[int] = None
     check_in_at: datetime
     check_out_at: datetime | None
     created_at: datetime | None
-    class Config:
-        from_attributes= True
+    model_config = ConfigDict(from_attributes=True)
 
 
-class WorkOrdersUpdate(BaseModel):
-    check_out_at: datetime | None = None
-    labor_estimate: Decimal | None = Field(None,ge=0,decimal_places=2)
-    parts_estimate: Decimal | None = Field(None,ge=0,decimal_places=2)
-    status : statusWorkOrder | None= None
-
-
-
-# CREATE TABLE work_orders (
-#     id                   SERIAL PRIMARY KEY,
-#     shop_id              INTEGER NOT NULL REFERENCES workshops(id) ON DELETE CASCADE,
-#     vehicle_id           INTEGER NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
-#     created_by_user_id   INTEGER REFERENCES users(id),
-#     check_in_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-#     check_out_at         TIMESTAMP,
-#     initial_diagnosis    TEXT,
-#     labor_estimate       NUMERIC(12,2) default 0,
-#     parts_estimate       NUMERIC(12,2) default 0,
-#     status               VARCHAR(30) NOT NULL
-#         CHECK (status IN (
-#             'RECEIVED',
-#             'DIAGNOSIS',
-#             'WAITING_APPROVAL',
-#             'APPROVED',
-#             'IN_PROGRESS',
-#             'WAITING_PARTS',
-#             'REPAIRED',
-#             'READY_FOR_DELIVERY',
-#             'COMPLETED',
-#             'CANCELLED'
-#         )),
-#     notes                TEXT,
-#     created_at           TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-# );
+class WorkOrderUpdate(BaseModel):
+    check_out_at:   Optional[datetime]       = None
+    labor_estimate: Optional[Decimal]        = money_field()
+    parts_estimate: Optional[Decimal]        = money_field()
+    status:         Optional[StatusWorkOrder] = None
+    notes:          Optional[str]            = None
+    initial_diagnosis: Optional[str]         = None

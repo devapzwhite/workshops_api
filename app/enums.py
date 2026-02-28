@@ -10,7 +10,7 @@ class TipoVehiculo(PyEnum):
     SKID_STEER = 'SKID_STEER'
     MOTORCYCLE ='MOTORCYCLE'
 
-class statusWorkOrder(PyEnum):
+class StatusWorkOrder(PyEnum):
     RECEIVED = 'RECEIVED'
     DIAGNOSIS = 'DIAGNOSIS'
     WAITING_APPROVAL = 'WAITING_APPROVAL'
@@ -21,3 +21,10 @@ class statusWorkOrder(PyEnum):
     READY_FOR_DELIVERY = 'READY_FOR_DELIVERY'
     COMPLETED = 'COMPLETED'
     CANCELLED = 'CANCELLED'
+
+
+
+class WorkOrderItemType(PyEnum):
+    DIAGNOSIS = 'DIAGNOSIS'
+    LABOR = 'LABOR'
+    PART = 'PART'

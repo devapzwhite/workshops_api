@@ -1,10 +1,9 @@
 from contextlib import asynccontextmanager
-from typing import Optional,List
 
+from app import events
 from fastapi import FastAPI
 
-from app.api.v1 import vehicles, customers, workshops,auth
-from pydantic import BaseModel, EmailStr
+from app.api.v1 import vehicles, customers, workshops,auth,workOrder
 from fastapi.middleware.cors import CORSMiddleware
 from app.db.database import engine, Base
 
@@ -18,6 +17,7 @@ app = FastAPI(lifespan=lifespan)
 app.include_router(vehicles.router)
 app.include_router(customers.router)
 app.include_router(workshops.router)
+app.include_router(workOrder.router)
 
 app.include_router(auth.router)
 
