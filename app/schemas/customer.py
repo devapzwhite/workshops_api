@@ -1,9 +1,8 @@
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from typing import Optional, List
-
-from app.schemas.vehicle import VehicleRead
+from app.enums import TipoVehiculo
 from app.schemas.workshop import WorkshopBase
 
 
@@ -38,11 +37,25 @@ class CustomerRead(CustomerBase):
         from_attributes = True
 
 
+class CustomerVehicleRead(BaseModel):
+    id: int
+    shop_id: int
+    customer_id: int
+    created_at: datetime
+    customer_id: int = Field(...)
+    vehicle_type: TipoVehiculo
+    plate: str = Field(..., max_length=20)
+    brand: str = Field(..., max_length=100)
+    model: str = Field(..., max_length=100)
+    year: int | None = None
+    photo_url: str | None = None
+    model_config = ConfigDict(from_attributes=True)
+
 class CustomerReadDetail(CustomerBase):
     id: int
     workshop: WorkshopBase
     created_at: datetime
-    vehicles: Optional[List[VehicleRead]]
+    vehicles: Optional[List[CustomerVehicleRead]]
 
     class Config:
         from_attributes = True

@@ -1,10 +1,10 @@
 from datetime import datetime
 from decimal import Decimal
-from pydantic import BaseModel, Field
-from pydantic import ConfigDict
+from pydantic import BaseModel, Field,ConfigDict
 from typing import Optional
 
 from app.enums import StatusWorkOrder
+from app.schemas.work_order_item import WorkOrderItemBase,WorkOrderItemResponse
 
 
 # Campo Decimal reutilizable
@@ -20,6 +20,7 @@ class WorkOrderBase(BaseModel):
 
 class NewWorkOrder(WorkOrderBase):
     vehicle_id: int = Field(...)
+    workorder_items: list[WorkOrderItemBase] | None = Field(None)
 
 class WorkOrdersRead(WorkOrderBase):
     id: int
@@ -29,6 +30,18 @@ class WorkOrdersRead(WorkOrderBase):
     check_out_at: datetime | None
     created_at: datetime | None
     model_config = ConfigDict(from_attributes=True)
+
+class WorkOrdersReadId(WorkOrderBase):
+    id: int
+    vehicle_id: Optional[int] = None
+    shop_id: int
+    created_by_user_id: Optional[int] = None
+    check_in_at: datetime
+    check_out_at: datetime | None
+    created_at: datetime | None
+    workorder_items: Optional[list[WorkOrderItemResponse]]
+    model_config = ConfigDict(from_attributes=True)
+
 
 
 class WorkOrderUpdate(BaseModel):

@@ -79,6 +79,7 @@ async def create_workorder_item(
             WorkOrder.shop_id == current_user.shop_id
         )
     )
+
     work_order = wo_result.scalars().first()
     if not work_order:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Work order not found")

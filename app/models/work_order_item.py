@@ -16,4 +16,4 @@ class WorkOrderItem(Base):
     unit_price = Column(NUMERIC(12,2),default=0, server_default="0", nullable=False)
     before_photo_url = Column(TEXT, nullable=True)
     after_photo_url = Column(TEXT, nullable=True)
-    work_orders = relationship("WorkOrder", back_populates="work_order_items")
+    work_order = relationship("WorkOrder", back_populates="workorder_items")

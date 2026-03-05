@@ -23,5 +23,5 @@ class WorkOrder(Base):
     workshop = relationship("Workshop", back_populates="work_orders")
     vehicles = relationship("Vehicle", back_populates="work_orders")
     user = relationship("User", back_populates="work_orders")
-    work_order_items = relationship("WorkOrderItem", back_populates="work_orders")
+    workorder_items = relationship("WorkOrderItem", back_populates="work_order")
 
