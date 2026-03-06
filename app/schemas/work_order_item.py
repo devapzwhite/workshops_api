@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, Field, ConfigDict
@@ -30,4 +31,5 @@ class WorkOrderItemUpdate(BaseModel):
 class WorkOrderItemResponse(WorkOrderItemBase):
     id:            int
     work_order_id: int
+    created_at: datetime | None
     model_config = ConfigDict(from_attributes=True)

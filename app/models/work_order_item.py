@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, Column, ForeignKey, Enum, TEXT, NUMERIC
+from sqlalchemy import DateTime, func, Integer, Column, ForeignKey, Enum, TEXT, NUMERIC
 from sqlalchemy.orm import relationship
 
 from app.db.database import Base
@@ -16,4 +16,5 @@ class WorkOrderItem(Base):
     unit_price = Column(NUMERIC(12,2),default=0, server_default="0", nullable=False)
     before_photo_url = Column(TEXT, nullable=True)
     after_photo_url = Column(TEXT, nullable=True)
+    created_at = Column(DateTime(timezone=True),nullable=True, server_default=func.now())
     work_order = relationship("WorkOrder", back_populates="workorder_items")
