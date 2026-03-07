@@ -1,7 +1,10 @@
 from datetime import datetime
+from decimal import Decimal
 from typing import Optional, List
 from app.enums import TipoVehiculo, StatusWorkOrder
 from pydantic import BaseModel, Field, ConfigDict,EmailStr
+
+from app.schemas.work_order import money_field
 
 
 class VehicleBase(BaseModel):
@@ -55,6 +58,8 @@ class VehicleWorkOrdersRead(BaseModel):
     shop_id: int
     initial_diagnosis: str | None = None
     created_by_user_id: Optional[int] = None
+    labor_estimate: Decimal | None = money_field()
+    parts_estimate: Decimal | None = money_field()
     check_in_at: datetime
     check_out_at: datetime | None
     created_at: datetime | None
