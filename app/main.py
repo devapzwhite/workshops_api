@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from app import events
 from fastapi import FastAPI
 
-from app.api.v1 import vehicles, customers, workshops,auth,workOrder, workorder_item
+from app.api.v1 import vehicles, customers, workshops,auth,workOrder, workorder_item, roles, users
 from fastapi.middleware.cors import CORSMiddleware
 from app.db.database import engine, Base
 
@@ -20,7 +20,8 @@ app.include_router(workshops.router)
 app.include_router(workOrder.router)
 app.include_router(workorder_item.router)
 app.include_router(auth.router)
-
+app.include_router(roles.router)
+app.include_router(users.router)
 
 
 # Orígenes permitidos específicos

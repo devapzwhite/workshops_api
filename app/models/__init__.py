@@ -6,5 +6,6 @@ from app.models.workshop import Workshop
 from app.models.customer import Customer
 from app.models.vehicle import Vehicle
 from app.models.work_order import WorkOrder
+from app.models.role import Role, UserRole
 
-__all__ = ["Base", "User", "Workshop", "Customer", "Vehicle", "WorkOrder"]
+__all__ = ["Base", "User", "Workshop", "Customer", "Vehicle", "WorkOrder", "Role", "UserRole"]

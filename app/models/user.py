@@ -15,4 +15,9 @@ class User(Base):
     created_at = Column(DateTime, server_default=func.now())
     work_orders = relationship("WorkOrder", back_populates="user")
     workshop = relationship("Workshop", back_populates="users")
-    # roles = relationship("role",secondary="user_roles", back_populates="users")
+    user_roles = relationship("UserRole", back_populates="user", cascade="all, delete-orphan")
+    roles = relationship(
+        "Role",
+        secondary="user_roles",
+        viewonly=True,
+    )

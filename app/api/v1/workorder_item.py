@@ -72,7 +72,7 @@ async def create_workorder_item(
     current_user: Annotated[User, Depends(current_user)],
 ):
     # Verificar que la orden de trabajo pertenece al taller del usuario
-    print(payload.work_order_id)
+    # print(payload.work_order_id)
     wo_result = await db.execute(
         select(WorkOrder).where(
             WorkOrder.id == payload.work_order_id,

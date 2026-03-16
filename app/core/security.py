@@ -71,3 +71,43 @@ def current_user_is_active(user: Annotated[User,Depends(current_user)]) -> User 
     if user.is_active:
         return user
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Usuario inactivo")
+
+
+def require_roles(*allowed_roles: str):
+    """
+    Dependencia para verificar que el usuario tiene uno de los roles permitidos.
+    
+    Uso:
+        @router.get("/admin-only")
+        def endpoint_admin(user: User = Depends(require_roles("ADMIN"))):
+            ...
+    """
+    async def role_checker(
+        user: Annotated[User, Depends(current_user_is_active)],
+        db: AsyncSession = Depends(get_db)
+    ) -> User:
+        # Cargar roles del usuario desde la DB
+        result = await db.execute(
+            select(User)
+            .where(User.id == user.id)
+        )
+        db_user = result.scalars().first()
+        
+        if not db_user or not db_user.roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No tienes permisos suficientes"
+            )
+        
+        user_role_names = [role.name for role in db_user.roles]
+        
+        # Verificar si el usuario tiene al menos uno de los roles permitidos
+        if not any(role in user_role_names for role in allowed_roles):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Se requiere uno de los roles: {', '.join(allowed_roles)}"
+            )
+        
+        return db_user
+    
+    return role_checker
