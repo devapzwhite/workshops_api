@@ -25,6 +25,7 @@ class NewWorkOrder(WorkOrderBase):
 class WorkOrdersRead(WorkOrderBase):
     id: int
     shop_id: int
+    vehicle_id: int
     created_by_user_id: Optional[int] = None
     check_in_at: datetime
     check_out_at: datetime | None
