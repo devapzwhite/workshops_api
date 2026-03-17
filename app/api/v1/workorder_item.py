@@ -1,16 +1,21 @@
 from typing import Annotated, List, Optional
-from fastapi import APIRouter, status, HTTPException, Depends, Query
+from fastapi import APIRouter, status, HTTPException, Depends, Query, File, UploadFile, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 
 from app.core.security import current_user
-from app.schemas.work_order_item import WorkOrderItemCreate, WorkOrderItemUpdate, WorkOrderItemResponse
+from app.schemas.work_order_item import (
+    WorkOrderItemCreate, 
+    WorkOrderItemUpdate, 
+    WorkOrderItemResponse
+)
 from app.models.user import User
 from app.models.work_order_item import WorkOrderItem
 from app.models.work_order import WorkOrder
 from app.db.database import get_db
+from app.utils.image_utils import save_image
 
-router = APIRouter(prefix='/workorderitem', tags=['Work Order Item'])
+router = APIRouter(prefix='/workorderitem', tags=['Work Order Item'], redirect_slashes=False)
 
 
 @router.get('/', response_model=List[WorkOrderItemResponse])
@@ -67,15 +72,21 @@ async def get_workorder_item_by_id(
 
 @router.post('/', response_model=WorkOrderItemResponse, status_code=status.HTTP_201_CREATED)
 async def create_workorder_item(
-    payload: WorkOrderItemCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(current_user)],
+    workorderid: int = Form(..., alias="workorderid"),
+    itemtype: str = Form(..., alias="itemtype"),
+    description: str = Form(...),
+    quantity: int = Form(default=1),
+    unitcost: float = Form(default=0, alias="unitcost"),
+    unitprice: float = Form(default=0, alias="unitprice"),
+    beforephoto: Optional[UploadFile] = File(default=None, alias="beforephoto"),
+    afterphoto: Optional[UploadFile] = File(default=None, alias="afterphoto"),
 ):
     # Verificar que la orden de trabajo pertenece al taller del usuario
-    # print(payload.work_order_id)
     wo_result = await db.execute(
         select(WorkOrder).where(
-            WorkOrder.id == payload.work_order_id,
+            WorkOrder.id == workorderid,
             WorkOrder.shop_id == current_user.shop_id
         )
     )
@@ -84,15 +95,19 @@ async def create_workorder_item(
     if not work_order:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Work order not found")
 
+        # Guardar imágenes si se proporcionan
+    before_photo_url = await save_image(beforephoto, "before", workorderid)
+    after_photo_url = await save_image(afterphoto, "after", workorderid)
+
     new_item = WorkOrderItem(
-        work_order_id=payload.work_order_id,
-        item_type=payload.item_type,
-        description=payload.description,
-        quantity=payload.quantity,
-        unit_cost=payload.unit_cost,
-        unit_price=payload.unit_price,
-        before_photo_url=payload.before_photo,
-        after_photo_url=payload.after_photo,
+        work_order_id=workorderid,
+        item_type=itemtype,
+        description=description,
+        quantity=quantity,
+        unit_cost=unitcost,
+        unit_price=unitprice,
+        before_photo_url=before_photo_url,
+        after_photo_url=after_photo_url,
     )
     db.add(new_item)
     await db.commit()

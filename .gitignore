@@ -1,10 +1,11 @@
 #folders
 .idea/
 .venv/
-
+media/
 #files
 __pycache__/
 *.pyc
 *.pyo
 
 .env
+

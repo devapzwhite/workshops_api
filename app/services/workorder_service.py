@@ -10,40 +10,48 @@ from app.schemas.work_order import NewWorkOrder,WorkOrderUpdate,WorkOrdersReadId
 from app.services.vehicle_service import get_vehicle_by_id
 
 
-async def new_work_order(db: AsyncSession,work_order:NewWorkOrder,current_user: User)->WorkOrdersReadId:
+async def new_work_order(db: AsyncSession, work_order: NewWorkOrder, current_user: User) -> WorkOrdersReadId:
     vehicle = await get_vehicle_by_id(id=work_order.vehicle_id, db=db, workshop_id=current_user.shop_id)
     if vehicle is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    
     create_order = WorkOrder(
         vehicle_id=work_order.vehicle_id,
         shop_id=current_user.shop_id,
-        created_by_user_id= current_user.id,
+        created_by_user_id=current_user.id,
         initial_diagnosis=work_order.initial_diagnosis,
         labor_estimate=work_order.labor_estimate,
         parts_estimate=work_order.parts_estimate,
         status=work_order.status,
         notes=work_order.notes,
     )
+    
     try:
         db.add(create_order)
         await db.flush()
+        
         if work_order.workorder_items is not None:
             for item in work_order.workorder_items:
                 create_item = WorkOrderItem(
-                    work_order_id= create_order.id,
-                    item_type= item.item_type,
-                    quantity= item.quantity,
-                    unit_price= item.unit_price,
-                    description= item.description,
+                    work_order_id=create_order.id,
+                    item_type=item.item_type,
+                    quantity=item.quantity,
+                    unit_price=item.unit_price,
+                    unit_cost=item.unit_cost,
+                    description=item.description,
+                    before_photo_url=item.before_photo_url,
+                    after_photo_url=item.after_photo_url,
                 )
                 db.add(create_item)
+        
         await db.commit()
         await db.refresh(create_order)
-        result = await get_workorder_by_id(db=db,id=create_order.id,workshop_id=current_user.shop_id)
+        
+        result = await get_workorder_by_id(db=db, id=create_order.id, workshop_id=current_user.shop_id)
         return result
-    except:
+    except Exception as e:
         await db.rollback()
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 async def get_all_workorders(db: AsyncSession,
                              workshop_id: int)->List[WorkOrder]:

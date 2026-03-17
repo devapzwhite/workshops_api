@@ -177,7 +177,7 @@ username=tu_usuario&password=tu_password
 
 ### Schemas
 
-**NewWorkOrder:**
+**NewWorkOrder (con items opcionales):**
 ```json
 {
   "vehicle_id": 1,
@@ -185,7 +185,27 @@ username=tu_usuario&password=tu_password
   "labor_estimate": 50000,
   "parts_estimate": 150000,
   "status": "RECEIVED",
-  "notes": "Cliente solicitó prioridad"
+  "notes": "Cliente solicitó prioridad",
+  "workorder_items": [
+    {
+      "item_type": "DIAGNOSIS",
+      "description": "Diagnóstico inicial",
+      "quantity": 1,
+      "unit_cost": 0,
+      "unit_price": 0,
+      "before_photo_url": null,
+      "after_photo_url": null
+    },
+    {
+      "item_type": "LABOR",
+      "description": "Cambio de aceite",
+      "quantity": 1,
+      "unit_cost": 10000,
+      "unit_price": 20000,
+      "before_photo_url": "workorder_items/before_wo1_20240101.jpg",
+      "after_photo_url": "workorder_items/after_wo1_20240101.jpg"
+    }
+  ]
 }
 ```
 
@@ -229,24 +249,59 @@ username=tu_usuario&password=tu_password
 |--------|----------|-------------|
 | GET | `/workorderitem/` | Listar ítems (opcional `?workOrderId=1`) |
 | GET | `/workorderitem/{id}` | Obtener ítem por ID |
-| POST | `/workorderitem/` | Crear ítem |
+| POST | `/workorderitem/` | Crear ítem (con imágenes opcionales) |
 | PUT | `/workorderitem/{id}` | Actualizar ítem |
 | DELETE | `/workorderitem/{id}` | Eliminar ítem |
 
-### Schemas
+### Crear Ítem con Imágenes (multipart/form-data)
 
-**WorkOrderItemCreate:**
-```json
-{
-  "work_order_id": 1,
-  "item_type": "LABOR",
-  "description": "Cambio de aceite",
-  "quantity": 1,
-  "unit_cost": 15000,
-  "unit_price": 25000,
-  "before_photo": "https://...",
-  "after_photo": "https://..."
+**IMPORTANTE:** El endpoint de creación acepta `multipart/form-data` para enviar imágenes.
+
+**Parámetros del form-data:**
+
+| Campo | Tipo | Requerido | Descripción |
+|-------|------|-----------|-------------|
+| `work_order_id` | integer | ✅ | ID de la orden de trabajo |
+| `item_type` | string | ✅ | DIAGNOSIS, LABOR, o PART |
+| `description` | string | ✅ | Descripción del trabajo |
+| `quantity` | integer | ❌ | Default: 1 |
+| `unit_cost` | number | ❌ | Costo interno (default: 0) |
+| `unit_price` | number | ❌ | Precio al cliente (default: 0) |
+| `before_photo` | file | ❌ | Foto antes del trabajo (JPEG, PNG, WEBP, GIF, BMP) |
+| `after_photo` | file | ❌ | Foto después del trabajo (JPEG, PNG, WEBP, GIF, BMP) |
+
+**Ejemplo Flutter:**
+```dart
+var uri = Uri.parse('http://localhost:8000/workorderitem/');
+var request = http.MultipartRequest('POST', uri);
+
+// Headers
+request.headers['Authorization'] = 'Bearer $token';
+
+// Campos requeridos
+request.fields['work_order_id'] = '1';
+request.fields['item_type'] = 'LABOR';
+request.fields['description'] = 'Cambio de aceite';
+request.fields['quantity'] = '1';
+request.fields['unit_cost'] = '15000';
+request.fields['unit_price'] = '25000';
+
+// Fotos opcionales
+if (antesFile != null) {
+  request.files.add(await http.MultipartFile.fromPath(
+    'before_photo', 
+    antesFile.path,
+  ));
 }
+
+if (despuesFile != null) {
+  request.files.add(await http.MultipartFile.fromPath(
+    'after_photo', 
+    despuesFile.path,
+  ));
+}
+
+var response = await request.send();
 ```
 
 **WorkOrderItemResponse:**
@@ -259,10 +314,16 @@ username=tu_usuario&password=tu_password
   "quantity": 1,
   "unit_cost": "15000.00",
   "unit_price": "25000.00",
-  "before_photo_url": "https://...",
-  "after_photo_url": "https://...",
+  "before_photo_url": "/media/workorder_items/before_wo1_20240101_abc12345.jpg",
+  "after_photo_url": "/media/workorder_items/after_wo1_20240101_def67890.jpg",
   "created_at": "2024-01-01T10:00:00Z"
 }
+```
+
+**Acceso a las imágenes:**
+Las imágenes se almacenan en `/media/workorder_items/` y son accesibles públicamente:
+```
+http://localhost:8000/media/workorder_items/before_wo1_20240101_abc12345.jpg
 ```
 
 ### Item Types
