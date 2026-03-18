@@ -3,10 +3,9 @@ import os
 
 from app import events
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1 import vehicles, customers, workshops,auth,workOrder, workorder_item, roles, users
+from app.api.v1 import vehicles, customers, workshops,auth,workOrder, workorder_item, roles, users, media
 from app.db.database import engine, Base
 
 @asynccontextmanager
@@ -21,10 +20,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# Montar directorio estático para servir imágenes
-media_dir = os.path.join(os.path.dirname(__file__), "..", "media")
-app.mount("/media", StaticFiles(directory=media_dir), name="media")
-
+app.include_router(media.router)
 app.include_router(vehicles.router)
 app.include_router(customers.router)
 app.include_router(workshops.router)

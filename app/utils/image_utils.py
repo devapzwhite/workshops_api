@@ -2,7 +2,7 @@ import os
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List, Set
 
 from fastapi import UploadFile
 
@@ -56,6 +56,77 @@ async def save_image(
     
     # Retornar URL relativa
     return f"workorder_items/{filename}"
+
+
+def delete_image(relative_url: str) -> bool:
+    """
+    Elimina una imagen del filesystem.
+    
+    Args:
+        relative_url: URL relativa del archivo (ej: 'workorder_items/filename.jpg')
+    
+    Returns:
+        True si se eliminó correctamente, False si no existía o falló
+    """
+    if not relative_url:
+        return False
+    
+    filepath = MEDIA_DIR / relative_url
+    
+    try:
+        if filepath.exists():
+            filepath.unlink()
+            return True
+    except Exception:
+        pass
+    
+    return False
+
+
+def get_orphan_images(used_urls: Set[str]) -> List[str]:
+    """
+    Encuentra imágenes en el filesystem que no están referenciadas en la base de datos.
+    
+    Args:
+        used_urls: Conjunto de URLs relativas que están en uso (ej: {'workorder_items/archivo1.jpg', ...})
+    
+    Returns:
+        Lista de URLs relativas huérfanas
+    """
+    orphan_urls = []
+    
+    if not WORKORDER_ITEMS_DIR.exists():
+        return orphan_urls
+    
+    for file_path in WORKORDER_ITEMS_DIR.iterdir():
+        if file_path.is_file():
+            relative_url = str(file_path.relative_to(MEDIA_DIR)).replace("\\", "/")
+            if relative_url not in used_urls:
+                orphan_urls.append(relative_url)
+    
+    return orphan_urls
+
+
+def cleanup_orphan_images(orphan_urls: List[str]) -> dict:
+    """
+    Elimina las imágenes huérfanas del filesystem.
+    
+    Args:
+        orphan_urls: Lista de URLs relativas a eliminar
+    
+    Returns:
+        Diccionario con 'deleted_count' y 'deleted_files'
+    """
+    deleted_files = []
+    
+    for relative_url in orphan_urls:
+        if delete_image(relative_url):
+            deleted_files.append(relative_url)
+    
+    return {
+        "deleted_count": len(deleted_files),
+        "deleted_files": deleted_files
+    }
 
 
 def get_full_image_url(relative_url: str, base_url: str = "/media") -> str:
